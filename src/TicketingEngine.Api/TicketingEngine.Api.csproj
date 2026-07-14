@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TicketingEngine.Application\TicketingEngine.Application.csproj" />
+    <ProjectReference Include="..\TicketingEngine.Infrastructure\TicketingEngine.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
