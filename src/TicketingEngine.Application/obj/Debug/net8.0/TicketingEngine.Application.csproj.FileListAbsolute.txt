@@ -1,0 +1,16 @@
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\bin\Debug\net8.0\TicketingEngine.Application.deps.json
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\bin\Debug\net8.0\TicketingEngine.Application.dll
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\bin\Debug\net8.0\TicketingEngine.Application.pdb
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\bin\Debug\net8.0\TicketingEngine.Domain.dll
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\bin\Debug\net8.0\TicketingEngine.Domain.pdb
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\TicketingEngine.Application.csproj.AssemblyReference.cache
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\TicketingEngine.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\TicketingEngine.Application.AssemblyInfoInputs.cache
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\TicketingEngine.Application.AssemblyInfo.cs
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\TicketingEngine.Application.csproj.CoreCompileInputs.cache
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\TicketingEngine.Application.sourcelink.json
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\Ticketin.7916CFDD.Up2Date
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\TicketingEngine.Application.dll
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\refint\TicketingEngine.Application.dll
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\TicketingEngine.Application.pdb
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Application\obj\Debug\net8.0\ref\TicketingEngine.Application.dll

@@ -21,3 +21,8 @@ This repository implements a high-concurrency ticketing engine with strict corre
 - short, structured, and implementation-oriented
 - clear about assumptions and next steps
 - aligned with the project vocabulary from the wiki
+- concise and free of conversational fluff
+- minimal in formatting, using bullets and brief sections rather than long prose
+- focused on the smallest effective change rather than broad rewrites
+- explanatory only when explicitly requested
+- aligned with board-keeping discipline: check board state before work begins and only mark work done after verification

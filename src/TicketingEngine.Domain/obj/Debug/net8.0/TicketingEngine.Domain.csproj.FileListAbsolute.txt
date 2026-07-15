@@ -1,0 +1,12 @@
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\bin\Debug\net8.0\TicketingEngine.Domain.deps.json
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\bin\Debug\net8.0\TicketingEngine.Domain.dll
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\bin\Debug\net8.0\TicketingEngine.Domain.pdb
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\obj\Debug\net8.0\TicketingEngine.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\obj\Debug\net8.0\TicketingEngine.Domain.AssemblyInfoInputs.cache
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\obj\Debug\net8.0\TicketingEngine.Domain.AssemblyInfo.cs
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\obj\Debug\net8.0\TicketingEngine.Domain.csproj.CoreCompileInputs.cache
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\obj\Debug\net8.0\TicketingEngine.Domain.sourcelink.json
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\obj\Debug\net8.0\TicketingEngine.Domain.dll
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\obj\Debug\net8.0\refint\TicketingEngine.Domain.dll
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\obj\Debug\net8.0\TicketingEngine.Domain.pdb
+C:\Users\romi9\source\repos\ticketing-engine\src\TicketingEngine.Domain\obj\Debug\net8.0\ref\TicketingEngine.Domain.dll

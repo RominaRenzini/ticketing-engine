@@ -17,8 +17,13 @@ public class ReservationsController : ControllerBase
     [HttpPost("{eventId:guid}/reserve")]
     public async Task<IActionResult> Reserve(Guid eventId, [FromBody] ReserveRequest request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.Row))
+        {
+            return BadRequest("Row is required.");
+        }
+
         var seat = await _reservationService.ReserveAsync(eventId, request.Row, request.Number, cancellationToken);
-        return Ok(new { seat.Id, seat.Row, seat.Number, seat.Status });
+        return Accepted(new { seat.Id, seat.Row, seat.Number, seat.Status });
     }
 }
 
