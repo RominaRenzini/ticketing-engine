@@ -17,6 +17,21 @@ public class Seat
         Status = SeatStatus.Available;
     }
 
+    private Seat(Guid id, string row, int number, decimal price, SeatStatus status, DateTimeOffset? lockedUntilUtc)
+    {
+        Id = id;
+        Row = row;
+        Number = number;
+        Price = price;
+        Status = status;
+        LockedUntilUtc = lockedUntilUtc;
+    }
+
+    public static Seat Rehydrate(Guid id, string row, int number, decimal price, SeatStatus status, DateTimeOffset? lockedUntilUtc)
+    {
+        return new Seat(id, row, number, price, status, lockedUntilUtc);
+    }
+
     public void MarkLocked(DateTimeOffset lockedUntilUtc)
     {
         Status = SeatStatus.TemporarilyLocked;

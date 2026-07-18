@@ -34,10 +34,13 @@ Run the API:
 dotnet run --project src/TicketingEngine.Api/TicketingEngine.Api.csproj
 ```
 
+MongoDB persistence is configured in `src/TicketingEngine.Api/appsettings.json` under `MongoDb`.
+The repository uses a dedicated MongoDB context and targets the `ticketing_engine` database.
+
 Verify the reservation endpoint:
 
 ```bash
-curl -X POST http://localhost:5000/api/v1/events/00000000-0000-0000-0000-000000000000/reserve -H "Content-Type: application/json" -d '{"row":"A","number":1}'
+curl -X POST "http://localhost:5000/api/events/reserve?api-version=1.0&eventId=00000000-0000-0000-0000-000000000000" -H "Content-Type: application/json" -d '{"row":"A","number":1}'
 ```
 
 ## API design preferences

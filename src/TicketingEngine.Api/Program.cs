@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using TicketingEngine.Application.Abstractions;
 using TicketingEngine.Infrastructure.BackgroundServices;
+using TicketingEngine.Infrastructure.Persistence;
 using TicketingEngine.Infrastructure.Publishing;
 using TicketingEngine.Infrastructure.Services;
 
@@ -16,8 +17,10 @@ builder.Services.AddApiVersioning(options =>
     options.AssumeDefaultVersionWhenUnspecified = true;
     options.ApiVersionReader = new QueryStringApiVersionReader("api-version");
 });
+builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection("MongoDb"));
+builder.Services.AddSingleton<IMongoDbContext, MongoDbContext>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
-builder.Services.AddSingleton<ReservationStateStore>();
+builder.Services.AddSingleton<IConcertEventRepository, MongoConcertEventRepository>();
 builder.Services.AddSingleton<IReservationPublisher, KafkaSeatReservationPublisher>();
 
 if (builder.Configuration.GetValue<bool>("Kafka:EnableConsumer"))

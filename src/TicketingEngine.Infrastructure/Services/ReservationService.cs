@@ -7,27 +7,46 @@ namespace TicketingEngine.Infrastructure.Services;
 public class ReservationService : IReservationService
 {
     private readonly IReservationPublisher _reservationPublisher;
-    private readonly ReservationStateStore _stateStore;
+    private readonly IConcertEventRepository _concertEventRepository;
 
-    public ReservationService(IReservationPublisher reservationPublisher, ReservationStateStore? stateStore = null)
+    public ReservationService(IReservationPublisher reservationPublisher, IConcertEventRepository concertEventRepository)
     {
         _reservationPublisher = reservationPublisher;
-        _stateStore = stateStore ?? new ReservationStateStore();
+        _concertEventRepository = concertEventRepository;
     }
 
     public async Task<Seat> ReserveAsync(Guid eventId, string row, int number, CancellationToken cancellationToken = default)
     {
-        var seat = new Seat(row, number, 100m);
-        var concertEvent = _stateStore.GetEvent(eventId) ?? new ConcertEvent(eventId, "Reserved Event", DateTimeOffset.UtcNow);
+        var concertEvent = await _concertEventRepository.GetByIdAsync(eventId, cancellationToken)
+            ?? new ConcertEvent(eventId, "Reserved Event", DateTimeOffset.UtcNow);
 
-        concertEvent.AddSeat(seat);
-        var lockedUntilUtc = concertEvent.LockSeat(seat.Id, TimeSpan.FromMinutes(5));
-        _stateStore.Save(concertEvent);
+        var seat = concertEvent.Seats.SingleOrDefault(existingSeat =>
+            string.Equals(existingSeat.Row, row, StringComparison.OrdinalIgnoreCase)
+            && existingSeat.Number == number);
+
+        var isNewSeat = seat is null;
+        if (isNewSeat)
+        {
+            seat = new Seat(row, number, 100m);
+            concertEvent.AddSeat(seat);
+        }
+
+        var seatToLock = seat!;
+        var lockedUntilUtc = concertEvent.LockSeat(seatToLock.Id, TimeSpan.FromMinutes(5));
+
+        if (isNewSeat)
+        {
+            await _concertEventRepository.SaveAsync(concertEvent, cancellationToken);
+        }
+        else
+        {
+            await _concertEventRepository.UpdateAsync(concertEvent, cancellationToken);
+        }
 
         await _reservationPublisher.PublishAsync(
-            new SeatLockedIntegrationEvent(eventId, seat.Id, lockedUntilUtc),
+            new SeatLockedIntegrationEvent(eventId, seatToLock.Id, lockedUntilUtc),
             cancellationToken);
 
-        return seat;
+        return seatToLock;
     }
 }
