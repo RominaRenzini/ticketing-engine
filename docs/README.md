@@ -40,5 +40,10 @@ Verify the reservation endpoint:
 curl -X POST http://localhost:5000/api/v1/events/00000000-0000-0000-0000-000000000000/reserve -H "Content-Type: application/json" -d '{"row":"A","number":1}'
 ```
 
+## API design preferences
+- Keep request DTOs in dedicated model files instead of embedding them inside controllers.
+- Prefer query-string API versioning with the `api-version` parameter and `[ApiVersion]` attributes.
+- Keep resource identifiers in query parameters when they are request-scoped rather than part of the route template.
+
 ## Notes for AI-assisted development
 Keep documentation aligned with the core constraints of correctness, fairness, and high availability. When making changes, prefer updates that strengthen reliability and observability.

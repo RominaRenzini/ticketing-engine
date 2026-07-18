@@ -22,5 +22,6 @@
     <ProjectReference Include="..\..\src\TicketingEngine.Domain\TicketingEngine.Domain.csproj" />
     <ProjectReference Include="..\..\src\TicketingEngine.Application\TicketingEngine.Application.csproj" />
     <ProjectReference Include="..\..\src\TicketingEngine.Infrastructure\TicketingEngine.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\TicketingEngine.Api\TicketingEngine.Api.csproj" />
   </ItemGroup>
 </Project>

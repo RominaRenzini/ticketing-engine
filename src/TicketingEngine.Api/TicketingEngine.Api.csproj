@@ -5,6 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\TicketingEngine.Application\TicketingEngine.Application.csproj" />
     <ProjectReference Include="..\TicketingEngine.Infrastructure\TicketingEngine.Infrastructure.csproj" />
   </ItemGroup>

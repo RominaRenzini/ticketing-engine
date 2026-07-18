@@ -4,6 +4,86 @@
     "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\tests\\TicketingEngine.Tests\\TicketingEngine.Tests.csproj": {}
   },
   "projects": {
+    "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Api\\TicketingEngine.Api.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Api\\TicketingEngine.Api.csproj",
+        "projectName": "TicketingEngine.Api",
+        "projectPath": "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Api\\TicketingEngine.Api.csproj",
+        "packagesPath": "C:\\Users\\romi9\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Api\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\romi9\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Application\\TicketingEngine.Application.csproj": {
+                "projectPath": "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Application\\TicketingEngine.Application.csproj"
+              },
+              "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Infrastructure\\TicketingEngine.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Infrastructure\\TicketingEngine.Infrastructure.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Mvc.Versioning": {
+              "target": "Package",
+              "version": "[5.1.0, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[6.4.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.422/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
     "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Application\\TicketingEngine.Application.csproj": {
       "version": "1.0.0",
       "restore": {
@@ -225,6 +305,9 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
+              "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Api\\TicketingEngine.Api.csproj": {
+                "projectPath": "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Api\\TicketingEngine.Api.csproj"
+              },
               "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Application\\TicketingEngine.Application.csproj": {
                 "projectPath": "C:\\Users\\romi9\\source\\repos\\ticketing-engine\\src\\TicketingEngine.Application\\TicketingEngine.Application.csproj"
               },
