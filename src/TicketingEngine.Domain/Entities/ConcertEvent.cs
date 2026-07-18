@@ -22,6 +22,16 @@ public class ConcertEvent
         _seats = seats?.ToList() ?? new List<Seat>();
     }
 
+    public void AddSeat(Seat seat)
+    {
+        if (_seats.Any(existingSeat => existingSeat.Id == seat.Id))
+        {
+            return;
+        }
+
+        _seats.Add(seat);
+    }
+
     public DateTimeOffset LockSeat(Guid seatId, TimeSpan duration)
     {
         var seat = _seats.SingleOrDefault(s => s.Id == seatId)
@@ -37,9 +47,29 @@ public class ConcertEvent
             throw new SeatLockException("Lock duration must be positive.");
         }
 
-        seat.MarkLocked();
         var lockedUntilUtc = DateTimeOffset.UtcNow.Add(duration);
+        seat.MarkLocked(lockedUntilUtc);
         _domainEvents.Add(new SeatLockedDomainEvent(Id, seat.Id, lockedUntilUtc));
         return lockedUntilUtc;
+    }
+
+    public bool ReleaseExpiredHold(Guid seatId, DateTimeOffset now)
+    {
+        var seat = _seats.SingleOrDefault(s => s.Id == seatId)
+            ?? throw new SeatLockException($"Seat {seatId} was not found for event {Id}.");
+
+        if (seat.Status != SeatStatus.TemporarilyLocked)
+        {
+            return false;
+        }
+
+        if (seat.LockedUntilUtc is null || seat.LockedUntilUtc.Value > now)
+        {
+            return false;
+        }
+
+        seat.MarkAvailable();
+        _domainEvents.Add(new SeatReleasedDomainEvent(Id, seat.Id, now));
+        return true;
     }
 }

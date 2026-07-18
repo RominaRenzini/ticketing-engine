@@ -17,6 +17,7 @@ builder.Services.AddApiVersioning(options =>
     options.ApiVersionReader = new QueryStringApiVersionReader("api-version");
 });
 builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddSingleton<ReservationStateStore>();
 builder.Services.AddSingleton<IReservationPublisher, KafkaSeatReservationPublisher>();
 
 if (builder.Configuration.GetValue<bool>("Kafka:EnableConsumer"))
