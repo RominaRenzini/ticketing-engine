@@ -2,7 +2,7 @@
 
 Cloud-scale event ticketing engine for high-concurrency reservation workflows.
 
-This project is being built as a portfolio-grade system for an AI engineer interview. The focus is not just on feature delivery, but on showing disciplined engineering around correctness, fairness, resilience, clean architecture, and explicit system design tradeoffs.
+This project is being built as a portfolio-grade system. The focus is not just on feature delivery, but on showing disciplined engineering around correctness, fairness, resilience, clean architecture, and explicit system design tradeoffs.
 
 ## What the system does
 
@@ -56,7 +56,7 @@ Client -> Write API -> Application Command -> Domain Aggregate -> MongoDB
 
 ## Roadmap intent
 
-The sprint history describes a progression that is intentional and interview-friendly:
+The sprint history describes a progression that is intentional and easy to review:
 
 1. establish the domain and local development environment
 2. refine the public API contract and versioning
@@ -97,9 +97,9 @@ Example reservation request:
 curl -X POST "http://localhost:5000/api/events/reserve?api-version=1.0&eventId=00000000-0000-0000-0000-000000000000" -H "Content-Type: application/json" -d '{"row":"A","number":1}'
 ```
 
-## Interview framing
+## Project focus
 
-If you are reviewing this as an interviewer, the project is meant to show:
+This repository is structured to demonstrate:
 
 - explicit design thinking before implementation
 - separation between HTTP, application, domain, and infrastructure concerns
