@@ -1,0 +1,189 @@
+name: Orchestrator Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      sprint_name:
+        description: 'Sprint name (e.g., Sprint 5)'
+        required: true
+        default: 'Sprint 5'
+      project_brief:
+        description: 'Path to project brief file or brief content'
+        required: true
+      phase:
+        description: 'Which phase to run (all, analysis, pm, dev, review)'
+        required: false
+        default: 'all'
+
+jobs:
+  orchestrate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize workflow state
+        run: |
+          mkdir -p .github/workflows/state
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          cat > .github/workflows/state/orchestrator-state.json << EOF
+          {
+            "sprint": "${{ github.event.inputs.sprint_name }}",
+            "started_at": "$TIMESTAMP",
+            "status": "initialized",
+            "phases": {
+              "analysis": {"status": "pending", "completed_at": null},
+              "pm": {"status": "pending", "completed_at": null},
+              "development": {"status": "pending", "completed_at": null},
+              "review": {"status": "pending", "completed_at": null}
+            },
+            "issues": {"created": 0, "in_progress": 0, "completed": 0},
+            "pull_requests": {"created": 0, "approved": 0, "merged": 0},
+            "current_phase": null,
+            "blockers": []
+          }
+          EOF
+          cat .github/workflows/state/orchestrator-state.json
+
+      - name: Trigger Analysis Phase
+        if: github.event.inputs.phase == 'all' || github.event.inputs.phase == 'analysis'
+        run: |
+          echo "🔍 Starting Analysis Phase for ${{ github.event.inputs.sprint_name }}"
+          echo "Brief: ${{ github.event.inputs.project_brief }}"
+          # Update state
+          sed -i 's/"status": "pending"/"status": "in_progress"/g' .github/workflows/state/orchestrator-state.json
+          sed -i 's/"current_phase": null/"current_phase": "analysis"/g' .github/workflows/state/orchestrator-state.json
+          cat .github/workflows/state/orchestrator-state.json
+
+      - name: Wait for Analysis to complete
+        if: github.event.inputs.phase == 'all' || github.event.inputs.phase == 'analysis'
+        run: |
+          echo "⏳ Waiting for Analysis Agent to complete..."
+          echo "Manual step: Copy .github/instructions/analysis.instructions.md to Copilot Chat"
+          echo "Check: Has wiki/sprint-X/functional-analysis-sprint-X.md been created? (Y/N)"
+
+      - name: Trigger PM Phase
+        if: github.event.inputs.phase == 'all' || github.event.inputs.phase == 'pm'
+        run: |
+          echo "📋 Starting PM Phase"
+          echo "Input: Analysis files from previous phase"
+          echo "Output: GitHub Issues created"
+
+      - name: Trigger Development Phase
+        if: github.event.inputs.phase == 'all' || github.event.inputs.phase == 'dev'
+        run: |
+          echo "💻 Starting Development Phase"
+          echo "Input: GitHub Issues"
+          echo "Output: Code + PRs"
+
+      - name: Trigger Review Phase
+        if: github.event.inputs.phase == 'all' || github.event.inputs.phase == 'review'
+        run: |
+          echo "✅ Starting Review Phase"
+          echo "Input: Pull Requests"
+          echo "Output: Approvals and feedback"
+
+      - name: Update progress dashboard
+        run: |
+          echo "📊 Updating progress dashboard..."
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          # Generate dashboard - this would be more sophisticated in practice
+          cat > .github/workflows/PROGRESS_DASHBOARD.md << 'EOF'
+          # Workflow Progress Dashboard
+
+          Generated: {{TIMESTAMP}}
+
+          ## Status Overview
+          - **Current Sprint:** {{SPRINT_NAME}}
+          - **Overall Progress:** Analysis Phase
+
+          ## Phase Status
+          - ✅ Analysis: In Progress
+          - ⏳ PM Issues: Pending
+          - ⏳ Development: Pending
+          - ⏳ Review: Pending
+          - ⏳ Merged: Pending
+
+          ## Metrics
+          - Issues Created: 0
+          - PRs Created: 0
+          - PRs Approved: 0
+          - PRs Merged: 0
+
+          ## Next Steps
+          1. Analysis Agent: Create functional and technical analysis
+          2. PM Agent: Convert analysis to GitHub Issues
+          3. Dev Agent: Implement issues with tests
+          4. Review Agent: Verify and approve PRs
+          EOF
+          sed -i "s|{{TIMESTAMP}}|$TIMESTAMP|g" .github/workflows/PROGRESS_DASHBOARD.md
+          sed -i "s|{{SPRINT_NAME}}|${{ github.event.inputs.sprint_name }}|g" .github/workflows/PROGRESS_DASHBOARD.md
+          cat .github/workflows/PROGRESS_DASHBOARD.md
+
+      - name: Commit workflow state
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .github/workflows/state/ .github/workflows/PROGRESS_DASHBOARD.md
+          git commit -m "chore: orchestrator state update for ${{ github.event.inputs.sprint_name }}" || echo "Nothing to commit"
+          git push
+
+      - name: Create workflow summary
+        run: |
+          cat > /tmp/workflow-summary.md << 'EOF'
+          # 🎯 Orchestrator Workflow Started
+
+          **Sprint:** ${{ github.event.inputs.sprint_name }}
+          **Status:** Analysis Phase Initiated
+
+          ## What to do next:
+
+          1. **Open Copilot Chat** (VS Code or Visual Studio)
+          2. **Copy instructions** from `.github/instructions/analysis.instructions.md`
+          3. **Paste into chat** and add your project brief
+          4. **Wait for completion** - Analysis Agent will create:
+             - `wiki/sprint-X/functional-analysis-sprint-X.md`
+             - `wiki/sprint-X/technical-analysis-sprint-X.md`
+          5. **Come back here** when analysis is complete
+
+          The Orchestrator will automatically trigger the PM Agent next.
+          EOF
+          cat /tmp/workflow-summary.md
+
+  update-handoff:
+    runs-on: ubuntu-latest
+    needs: orchestrate
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create handoff document
+        run: |
+          mkdir -p .github/workflows/handoffs
+          cat > .github/workflows/handoffs/orchestrator-handoff.md << 'EOF'
+          # Handoff Document - Orchestrator
+
+          ## Current State
+          - Phase: Analysis Initiated
+          - Status: Waiting for manual agent invocation
+          - Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          ## What's Expected Next
+          1. User runs Analysis Agent via Copilot Chat
+          2. Analysis creates functional-analysis.md and technical-analysis.md
+          3. Analysis Agent completes and signals done
+          4. Orchestrator receives handoff and triggers PM Agent
+
+          ## Progress Files
+          - State: `.github/workflows/state/orchestrator-state.json`
+          - Dashboard: `.github/workflows/PROGRESS_DASHBOARD.md`
+          - Handoffs: `.github/workflows/handoffs/`
+          EOF
