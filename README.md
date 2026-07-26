@@ -63,6 +63,37 @@ See `.github/README.md` for complete agent framework with:
 - Handoff protocols between agents
 - Real-world workflow examples
 
+### 🚀 Using the Orchestrator Agent
+
+The **Orchestrator Agent is fully implemented** and ready to use:
+
+**Quick Start (5 minutes):**
+```powershell
+cd .github/scripts
+.\orchestrator.ps1 -Command start -SprintName "Sprint 5"
+```
+
+**Commands:**
+- `start` - Initialize workflow
+- `status` - Check progress
+- `advance` - Move to next phase
+- `dashboard` - View progress dashboard
+- `escalate` - Flag blockers
+
+**Documentation:**
+- **Getting Started:** `.github/GETTING_STARTED.md` (entry point)
+- **Quick Start:** `.github/ORCHESTRATOR_QUICK_START.md` (5-minute guide)
+- **Full Implementation:** `.github/ORCHESTRATOR_IMPLEMENTATION.md`
+- **Integration Guide:** `.github/ORCHESTRATOR_INTEGRATION.md`
+- **Example Brief:** `.github/EXAMPLE_PROJECT_BRIEF.md`
+
+**Scripts:**
+- Windows: `.github/scripts/orchestrator.ps1`
+- Mac/Linux: `.github/scripts/orchestrator.sh`
+
+**GitHub Actions:**
+- `.github/workflows/orchestrator.yml` - Automated workflow management
+
 ## Current state
 
 The repository already demonstrates the core backbone of the ticketing flow:
