@@ -6,6 +6,8 @@ namespace TicketingEngine.Infrastructure.Services;
 
 public class ReservationService : IReservationService
 {
+    private const int MaxConcurrencyRetries = 3;
+
     private readonly IReservationPublisher _reservationPublisher;
     private readonly IConcertEventRepository _concertEventRepository;
 
@@ -17,15 +19,31 @@ public class ReservationService : IReservationService
 
     public async Task<Seat> ReserveAsync(Guid eventId, string row, int number, CancellationToken cancellationToken = default)
     {
-        var concertEvent = await _concertEventRepository.GetByIdAsync(eventId, cancellationToken)
-            ?? new ConcertEvent(eventId, "Reserved Event", DateTimeOffset.UtcNow);
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await TryReserveAsync(eventId, row, number, cancellationToken);
+            }
+            catch (InvalidOperationException) when (attempt < MaxConcurrencyRetries)
+            {
+                // Another writer updated this event between our read and write (optimistic concurrency
+                // conflict in MongoConcertEventRepository.UpdateAsync); retry with a fresh read.
+            }
+        }
+    }
+
+    private async Task<Seat> TryReserveAsync(Guid eventId, string row, int number, CancellationToken cancellationToken)
+    {
+        var existingConcertEvent = await _concertEventRepository.GetByIdAsync(eventId, cancellationToken);
+        var isNewEvent = existingConcertEvent is null;
+        var concertEvent = existingConcertEvent ?? new ConcertEvent(eventId, "Reserved Event", DateTimeOffset.UtcNow);
 
         var seat = concertEvent.Seats.SingleOrDefault(existingSeat =>
             string.Equals(existingSeat.Row, row, StringComparison.OrdinalIgnoreCase)
             && existingSeat.Number == number);
 
-        var isNewSeat = seat is null;
-        if (isNewSeat)
+        if (seat is null)
         {
             seat = new Seat(row, number, 100m);
             concertEvent.AddSeat(seat);
@@ -34,7 +52,7 @@ public class ReservationService : IReservationService
         var seatToLock = seat!;
         var lockedUntilUtc = concertEvent.LockSeat(seatToLock.Id, TimeSpan.FromMinutes(5));
 
-        if (isNewSeat)
+        if (isNewEvent)
         {
             await _concertEventRepository.SaveAsync(concertEvent, cancellationToken);
         }

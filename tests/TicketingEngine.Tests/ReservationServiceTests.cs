@@ -50,6 +50,36 @@ public class ReservationServiceTests
         Assert.Null(seatAfterRelease.LockedUntilUtc);
     }
 
+    [Fact]
+    public async Task ReserveAsync_ShouldRetry_WhenUpdateHitsAConcurrencyConflict()
+    {
+        var repository = new InMemoryConcertEventRepository();
+        var service = new ReservationService(new StubReservationPublisher(), repository);
+        var eventId = Guid.NewGuid();
+
+        await service.ReserveAsync(eventId, "A", 12);
+
+        repository.FailNextUpdateWith(new InvalidOperationException("Concurrent update detected."));
+        var seat = await service.ReserveAsync(eventId, "B", 5);
+
+        Assert.Equal("B", seat.Row);
+        Assert.Equal(1, repository.FailedUpdateCount);
+    }
+
+    [Fact]
+    public async Task ReserveAsync_ShouldSurfaceConflict_WhenRetriesAreExhausted()
+    {
+        var repository = new InMemoryConcertEventRepository();
+        var service = new ReservationService(new StubReservationPublisher(), repository);
+        var eventId = Guid.NewGuid();
+
+        await service.ReserveAsync(eventId, "A", 12);
+
+        repository.FailEveryUpdateWith(new InvalidOperationException("Concurrent update detected."));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReserveAsync(eventId, "B", 5));
+    }
+
     private sealed class StubReservationPublisher : IReservationPublisher
     {
         public Task PublishAsync(SeatLockedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
@@ -59,6 +89,14 @@ public class ReservationServiceTests
     private sealed class InMemoryConcertEventRepository : IConcertEventRepository
     {
         private readonly Dictionary<Guid, ConcertEvent> _store = new();
+        private Exception? _nextUpdateFailure;
+        private Exception? _everyUpdateFailure;
+
+        public int FailedUpdateCount { get; private set; }
+
+        public void FailNextUpdateWith(Exception exception) => _nextUpdateFailure = exception;
+
+        public void FailEveryUpdateWith(Exception exception) => _everyUpdateFailure = exception;
 
         public Task<ConcertEvent?> GetByIdAsync(Guid eventId, CancellationToken cancellationToken = default)
         {
@@ -80,6 +118,20 @@ public class ReservationServiceTests
 
         public Task UpdateAsync(ConcertEvent concertEvent, CancellationToken cancellationToken = default)
         {
+            if (_everyUpdateFailure is not null)
+            {
+                FailedUpdateCount++;
+                throw _everyUpdateFailure;
+            }
+
+            if (_nextUpdateFailure is not null)
+            {
+                var failure = _nextUpdateFailure;
+                _nextUpdateFailure = null;
+                FailedUpdateCount++;
+                throw failure;
+            }
+
             _store[concertEvent.Id] = Clone(concertEvent);
             return Task.CompletedTask;
         }
