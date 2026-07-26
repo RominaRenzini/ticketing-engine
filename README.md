@@ -34,7 +34,7 @@ The project uses an AI-assisted development approach where:
 graph LR
     A["📝 Feature Request"] -->|Analysis Agent| B["📊 Functional<br/>+ Technical<br/>Analysis"]
     B -->|PM Agent| C["📋 GitHub<br/>Issues"]
-    C -->|Dev Agent| D["💻 Code<br/>+ Tests<br/>70%+ Coverage"]
+    C -->|Development Agent| D["💻 Code<br/>+ Tests<br/>70%+ Coverage"]
     D -->|Review Agent| E{"✅ Criteria<br/>Met?"}
     E -->|Yes| F["🚀 Merged<br/>to Main"]
     E -->|No| D
@@ -49,11 +49,17 @@ graph LR
 
 ### How It Works
 
-1. **Analysis Phase** → Agent analyzes requirements and creates detailed analysis documents
-2. **PM Phase** → PM Agent converts analysis to GitHub Issues with clear acceptance criteria
-3. **Development Phase** → Dev Agent implements issues with comprehensive testing
-4. **Review Phase** → Review Agent verifies all acceptance criteria and approves code
-5. **Integration** → Approved PRs merged to main automatically
+The **Orchestrator Agent** coordinates a complete workflow:
+
+1. **Orchestrator Starts** → Initialize workflow with `orchestrator.ps1 -Command start`
+2. **Analysis Phase** → Analysis Agent creates functional + technical analysis (manual via Copilot)
+3. **PM Phase** → PM Agent creates GitHub Issues from analysis (manual via Copilot)
+4. **Development Phase** → Development Agent implements issues with 70%+ test coverage (manual via Copilot)
+5. **Review Phase** → Review Agent verifies acceptance criteria and approves PRs (manual via Copilot)
+6. **Orchestrator Tracks Progress** → Real-time status, dashboard, and blocker escalation
+7. **Integration** → Approved PRs merged to main ✅
+
+**Each phase transition:** Run `orchestrator.ps1 -Command advance -Phase <next_phase>` to move forward
 
 ### Agent Framework Documentation
 
