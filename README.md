@@ -50,7 +50,7 @@ graph LR
 ### How It Works
 
 1. **Analysis Phase** → Agent analyzes requirements and creates detailed analysis documents
-2. **Planning Phase** → PM Agent converts analysis to GitHub Issues with clear acceptance criteria
+2. **PM Phase** → PM Agent converts analysis to GitHub Issues with clear acceptance criteria
 3. **Development Phase** → Dev Agent implements issues with comprehensive testing
 4. **Review Phase** → Review Agent verifies all acceptance criteria and approves code
 5. **Integration** → Approved PRs merged to main automatically
