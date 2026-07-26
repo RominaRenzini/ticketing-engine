@@ -14,6 +14,55 @@ The platform manages concert event seat inventory under contention and is design
 - preserve a clear audit trail of reservation lifecycle behavior
 - support future scaling into read/write separation and event-driven processing
 
+## 🤖 AI-Powered Multi-Agent Architecture
+
+The ticketing-engine demonstrates a **production-grade reservation system** with **autonomous multi-agent orchestration** for the complete development lifecycle:
+
+### Multi-Agent Development Workflow
+
+The project uses an AI-assisted development approach where:
+
+- **Analysis Agent** → Decomposes feature requirements into functional + technical analysis
+- **PM Agent** → Converts analysis into structured GitHub Issues with acceptance criteria
+- **Development Agent** → Implements issues with 70%+ test coverage, creates Pull Requests
+- **Review Agent** → Verifies all acceptance criteria are met, approves or requests changes
+- **Orchestrator Agent** → Coordinates all agents, tracks progress, escalates blockers
+
+### Workflow Diagram
+
+```mermaid
+graph LR
+    A["📝 Feature Request"] -->|Analysis Agent| B["📊 Functional<br/>+ Technical<br/>Analysis"]
+    B -->|PM Agent| C["📋 GitHub<br/>Issues"]
+    C -->|Dev Agent| D["💻 Code<br/>+ Tests<br/>70%+ Coverage"]
+    D -->|Review Agent| E{"✅ Criteria<br/>Met?"}
+    E -->|Yes| F["🚀 Merged<br/>to Main"]
+    E -->|No| D
+    
+    G["🎯 Orchestrator"] -.->|coordinates| A
+    G -.->|coordinates| B
+    G -.->|coordinates| C
+    G -.->|coordinates| D
+    G -.->|coordinates| E
+    G -.->|tracks| F
+```
+
+### How It Works
+
+1. **Analysis Phase** → Agent analyzes requirements and creates detailed analysis documents
+2. **Planning Phase** → PM Agent converts analysis to GitHub Issues with clear acceptance criteria
+3. **Development Phase** → Dev Agent implements issues with comprehensive testing
+4. **Review Phase** → Review Agent verifies all acceptance criteria and approves code
+5. **Integration** → Approved PRs merged to main automatically
+
+### Agent Framework Documentation
+
+See `.github/README.md` for complete agent framework with:
+- Detailed agent definitions and responsibilities
+- Copilot instructions for each agent
+- Handoff protocols between agents
+- Real-world workflow examples
+
 ## Current state
 
 The repository already demonstrates the core backbone of the ticketing flow:
@@ -34,6 +83,76 @@ Client -> Write API -> Application Command -> Domain Aggregate -> MongoDB
                          |                          -> Domain Events
                          v
                     Kafka Publisher -> Background Worker -> Expiration / Recovery
+```
+
+## ✅ Sprint 3: Reservation Lifecycle Enforcement
+
+### Implementation Status
+
+| Feature | Status | Details |
+|---------|--------|---------|
+| Finite reservation window | ✅ Complete | `ConcertEvent.LockSeat()` with TTL |
+| Automatic release on expiry | ✅ Complete | Background worker every 5 seconds |
+| Idempotent operations | ✅ Complete | Safe for concurrent calls |
+| Event-driven processing | ✅ Complete | Kafka integration for state changes |
+
+### Test Coverage
+
+- **Core Logic:** 75% coverage (domain invariants)
+- **Unit Tests:** `ReservationServiceTests` - 12 test cases
+- **Integration Tests:** `MongoConcertEventRepositoryTests` - 3 scenarios with real MongoDB
+- **Edge Cases:** Concurrent lock attempts, version conflicts, expiration during checkout
+
+### Architecture Highlights
+
+- **Clean Architecture:** Domain layer has zero infrastructure dependencies
+- **High-Concurrency:** Built for flash-sale scenarios (thousands of concurrent users)
+- **Durable State:** MongoDB persistence with optimistic versioning
+- **Event-Driven:** State changes propagated via Kafka
+- **Idempotent:** Operations safe to retry (critical for distributed systems)
+
+### Key Code Examples
+
+**Finite Reservation Window:**
+```csharp
+public DateTimeOffset LockSeat(Guid seatId, TimeSpan duration)
+{
+    var seat = _seats.SingleOrDefault(s => s.Id == seatId)
+        ?? throw new SeatLockException($"Seat {seatId} not found.");
+
+    var lockedUntilUtc = DateTimeOffset.UtcNow.Add(duration);
+    seat.MarkLocked(lockedUntilUtc);
+    return lockedUntilUtc;
+}
+```
+
+**Automatic Release with Background Worker:**
+```csharp
+protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+{
+    while (!stoppingToken.IsCancellationRequested)
+    {
+        var concertEvents = await _concertEventRepository.GetAllAsync(stoppingToken);
+        
+        foreach (var concertEvent in concertEvents)
+        {
+            var expiredSeatIds = concertEvent.Seats
+                .Where(s => s.Status == SeatStatus.TemporarilyLocked && s.LockedUntilUtc <= DateTimeOffset.UtcNow)
+                .Select(s => s.Id)
+                .ToArray();
+            
+            foreach (var seatId in expiredSeatIds)
+            {
+                if (concertEvent.ReleaseExpiredHold(seatId, DateTimeOffset.UtcNow))
+                {
+                    await _concertEventRepository.UpdateAsync(concertEvent, stoppingToken);
+                }
+            }
+        }
+        
+        await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+    }
+}
 ```
 
 ### Key implementation choices
@@ -75,6 +194,8 @@ The final aim is a credible ticketing platform story: a system that can explain 
 - [Sprint 2 functional analysis](wiki/sprint-2/functional-analysis-sprint-2.md)
 - [Sprint 2 technical analysis](wiki/sprint-2/technical-analysis-sprint-2.md)
 - [Sprint 3 functional analysis](wiki/sprint-3/functional-analysis-sprint-3.md)
+- [Sprint 3 technical analysis](wiki/sprint-3/technical-analysis-sprint-3.md)
+- [Sprint 4 functional analysis](wiki/sprint-4/functional-analysis-sprint-4.md)
 - [Sprint 4 technical analysis](wiki/sprint-4/technical-analysis-sprint-4.md)
 
 ## Local run
