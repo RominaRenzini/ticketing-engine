@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using TicketingEngine.Application.Abstractions;
+using TicketingEngine.Domain.Entities;
 using TicketingEngine.Infrastructure.BackgroundServices;
 using TicketingEngine.Infrastructure.Persistence;
 using TicketingEngine.Infrastructure.Publishing;
@@ -22,6 +23,7 @@ builder.Services.AddSingleton<IMongoDbContext, MongoDbContext>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddSingleton<IConcertEventRepository, MongoConcertEventRepository>();
 builder.Services.AddSingleton<IReservationPublisher, KafkaSeatReservationPublisher>();
+builder.Services.AddSingleton<IIdempotencyStore<IReadOnlyList<Seat>>, InMemoryIdempotencyStore<IReadOnlyList<Seat>>>();
 
 if (builder.Configuration.GetValue<bool>("Kafka:EnableConsumer"))
 {

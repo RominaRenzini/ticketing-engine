@@ -1,10 +1,19 @@
+using TicketingEngine.Application.Models;
 using TicketingEngine.Domain.Entities;
 
 namespace TicketingEngine.Application.Abstractions;
 
 public interface IReservationService
 {
-    Task<Seat> ReserveAsync(Guid eventId, string row, int number, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Seat>> ReserveSeatsAsync(
+        Guid eventId,
+        string idempotencyKey,
+        IReadOnlyList<SeatCoordinate> seats,
+        CancellationToken cancellationToken = default);
+
+    Task<AvailabilitySummary> GetAvailabilitySummaryAsync(
+        Guid eventId,
+        CancellationToken cancellationToken = default);
 }
 
 public interface IConcertEventRepository

@@ -3,15 +3,15 @@ using TicketingEngine.Domain.Entities;
 
 namespace TicketingEngine.Application.Commands;
 
-public sealed class ReserveSeatCommandHandler
+public sealed class ReserveSeatsCommandHandler
 {
     private readonly IReservationService _reservationService;
 
-    public ReserveSeatCommandHandler(IReservationService reservationService)
+    public ReserveSeatsCommandHandler(IReservationService reservationService)
     {
         _reservationService = reservationService;
     }
 
-    public Task<Seat> Handle(ReserveSeatCommand request, CancellationToken cancellationToken)
-        => _reservationService.ReserveAsync(request.EventId, request.Row, request.Number, cancellationToken);
+    public Task<IReadOnlyList<Seat>> Handle(ReserveSeatsCommand request, CancellationToken cancellationToken)
+        => _reservationService.ReserveSeatsAsync(request.EventId, request.IdempotencyKey, request.Seats, cancellationToken);
 }

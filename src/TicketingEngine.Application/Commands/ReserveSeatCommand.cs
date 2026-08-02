@@ -1,5 +1,5 @@
-using TicketingEngine.Domain.Entities;
+using TicketingEngine.Application.Models;
 
 namespace TicketingEngine.Application.Commands;
 
-public sealed record ReserveSeatCommand(Guid EventId, string Row, int Number);
+public sealed record ReserveSeatsCommand(Guid EventId, string IdempotencyKey, IReadOnlyList<SeatCoordinate> Seats);
