@@ -53,6 +53,41 @@ public class ConcertEvent
         return lockedUntilUtc;
     }
 
+    public DateTimeOffset LockSeats(IReadOnlyList<Guid> seatIds, TimeSpan duration)
+    {
+        if (seatIds.Count == 0)
+        {
+            throw new SeatLockException("At least one seat must be specified.");
+        }
+
+        if (duration <= TimeSpan.Zero)
+        {
+            throw new SeatLockException("Lock duration must be positive.");
+        }
+
+        foreach (var seatId in seatIds)
+        {
+            var seat = _seats.SingleOrDefault(s => s.Id == seatId)
+                ?? throw new SeatLockException($"Seat {seatId} was not found for event {Id}.");
+
+            if (seat.Status == SeatStatus.TemporarilyLocked || seat.Status == SeatStatus.Sold)
+            {
+                throw new SeatLockException($"Seat {seatId} is already locked or sold.");
+            }
+        }
+
+        var lockedUntilUtc = DateTimeOffset.UtcNow.Add(duration);
+
+        foreach (var seatId in seatIds)
+        {
+            var seat = _seats.Single(s => s.Id == seatId);
+            seat.MarkLocked(lockedUntilUtc);
+            _domainEvents.Add(new SeatLockedDomainEvent(Id, seat.Id, lockedUntilUtc));
+        }
+
+        return lockedUntilUtc;
+    }
+
     public bool ReleaseExpiredHold(Guid seatId, DateTimeOffset now)
     {
         var seat = _seats.SingleOrDefault(s => s.Id == seatId)
