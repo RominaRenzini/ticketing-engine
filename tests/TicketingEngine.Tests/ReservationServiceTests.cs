@@ -89,6 +89,7 @@ public class ReservationServiceTests
     private sealed class InMemoryConcertEventRepository : IConcertEventRepository
     {
         private readonly Dictionary<Guid, ConcertEvent> _store = new();
+        private readonly Dictionary<string, Reservation> _reservations = new(StringComparer.OrdinalIgnoreCase);
         private Exception? _nextUpdateFailure;
         private Exception? _everyUpdateFailure;
 
@@ -136,12 +137,40 @@ public class ReservationServiceTests
             return Task.CompletedTask;
         }
 
+        public Task<Reservation?> GetReservationByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default)
+        {
+            _reservations.TryGetValue(idempotencyKey, out var reservation);
+            return Task.FromResult(reservation is null ? null : Clone(reservation));
+        }
+
+        public Task SaveReservationAsync(Reservation reservation, CancellationToken cancellationToken = default)
+        {
+            _reservations[reservation.IdempotencyKey!] = Clone(reservation);
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateReservationAsync(Reservation reservation, CancellationToken cancellationToken = default)
+        {
+            _reservations[reservation.IdempotencyKey!] = Clone(reservation);
+            return Task.CompletedTask;
+        }
+
         private static ConcertEvent Clone(ConcertEvent source)
         {
             var seats = source.Seats.Select(seat =>
                 Seat.Rehydrate(seat.Id, seat.Row, seat.Number, seat.Price, seat.Status, seat.LockedUntilUtc));
 
             return new ConcertEvent(source.Id, source.Name, source.StartsAt, seats);
+        }
+
+        private static Reservation Clone(Reservation source)
+        {
+            return Reservation.Rehydrate(
+                source.Id,
+                source.EventId,
+                source.Status,
+                source.SeatSelections.Select(selection => new SeatSelection(selection.Row, selection.Number)).ToArray(),
+                source.IdempotencyKey);
         }
     }
 }

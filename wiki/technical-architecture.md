@@ -43,3 +43,7 @@ MongoDB TTL indexes track reservation lifetimes, and expiration events trigger s
 - Idempotency for message processing
 - Replay safety for event consumers
 - Resilience under backpressure
+
+## API conventions
+- Prefer conventional route templates such as `{eventId}` over constraint-style route syntax like `{eventId:guid}`.
+- Keep route parameters explicit and bind them with `[FromRoute]` or `[FromQuery]` depending on the transport contract.

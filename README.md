@@ -114,6 +114,8 @@ The repository already demonstrates the core backbone of the ticketing flow:
 
 The current design follows Clean Architecture with DDD, CQRS, and event-driven processing.
 
+> Note for contributors: avoid using route constraint syntax such as `{eventId:guid}` in ASP.NET Core endpoints. Prefer the conventional route form `{eventId}` and bind the parameter explicitly with `[FromRoute]` or `[FromQuery]` as appropriate.
+
 ```text
 Client -> Write API -> Application Command -> Domain Aggregate -> MongoDB
                          |                          |
