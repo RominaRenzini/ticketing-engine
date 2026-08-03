@@ -1,9 +1,9 @@
 # Orchestrator Agent - PowerShell Implementation
-# Coordinates workflow across all agents: Analysis → PM → Dev → Review
+# Coordinates workflow across all agents: Analysis -> PM -> Dev -> Review
 
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("start", "status", "advance", "escalate", "dashboard")]
+    [ValidateSet("start", "status", "advance", "next", "escalate", "dashboard")]
     [string]$Command,
 
     [Parameter(Mandatory = $false)]
@@ -55,13 +55,13 @@ function New-WorkflowState {
         blockers = @()
     }
 
-    $state | ConvertTo-Json -Depth 10 | Set-Content $StateFile
-    Write-Host "✅ Workflow state initialized for $Sprint" -ForegroundColor Green
+    $state | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $StateFile
+    Write-Host "[OK] Workflow state initialized for $Sprint" -ForegroundColor Green
 }
 
 function Get-WorkflowState {
     if (-not (Test-Path $StateFile)) {
-        Write-Host "❌ Workflow state not found. Run 'orchestrator.ps1 -Command start -SprintName <name>'" -ForegroundColor Red
+        Write-Host "[ERROR] Workflow state not found. Run 'orchestrator.ps1 -Command start -SprintName <name>'" -ForegroundColor Red
         exit 1
     }
 
@@ -91,38 +91,50 @@ function Update-WorkflowState {
         }
     }
 
-    $state | ConvertTo-Json -Depth 10 | Set-Content $StateFile
+    $state | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $StateFile
 }
 
 function Start-Workflow {
     param([string]$Sprint)
 
     Write-Host ""
-    Write-Host "🎯 Orchestrator Agent - Starting Workflow" -ForegroundColor Cyan
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host "Orchestrator Agent - Starting Workflow" -ForegroundColor Cyan
+    Write-Host "--------------------------------------" -ForegroundColor Cyan
     Write-Host ""
 
     New-WorkflowState -Sprint $Sprint
 
-    Write-Host "📋 Workflow Details:" -ForegroundColor Yellow
+    Write-Host "Workflow Details:" -ForegroundColor Yellow
     Write-Host "  Sprint: $Sprint"
     Write-Host "  Status: Ready for Analysis Phase"
     Write-Host ""
 
-    Write-Host "🔄 Next Steps:" -ForegroundColor Cyan
+    Write-Host "Next Steps:" -ForegroundColor Cyan
     Write-Host "  1. Open Copilot Chat in VS Code"
-    Write-Host "  2. Copy .github/instructions/analysis.instructions.md"
-    Write-Host "  3. Paste into chat and add your project brief"
-    Write-Host "  4. When complete, run: orchestrator.ps1 -Command advance -Phase pm"
+    Write-Host "  2. Ask Orchestrator Agent: 'Avvia $Sprint con questo brief: ...'"
+    Write-Host "  3. Approve or request changes at each phase gate"
+    Write-Host "  4. Optional CLI shortcut: orchestrator.ps1 -Command next"
     Write-Host ""
+}
+
+function Get-NextPhase {
+    param([string]$CurrentPhase)
+
+    switch ($CurrentPhase) {
+        "analysis" { return "pm" }
+        "pm" { return "development" }
+        "development" { return "review" }
+        "review" { return "done" }
+        default { return "analysis" }
+    }
 }
 
 function Show-Status {
     $state = Get-WorkflowState
 
     Write-Host ""
-    Write-Host "📊 Workflow Status Dashboard" -ForegroundColor Cyan
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host "Workflow Status Dashboard" -ForegroundColor Cyan
+    Write-Host "-------------------------" -ForegroundColor Cyan
     Write-Host ""
 
     Write-Host "Sprint: $($state.sprint)" -ForegroundColor Yellow
@@ -132,13 +144,13 @@ function Show-Status {
 
     Write-Host "Phase Progress:" -ForegroundColor Yellow
     foreach ($phase in $state.phases.PSObject.Properties.Name) {
-        $status = $state.phases.$phase.status
-        $emoji = switch ($status) {
-            "completed" { "✅" }
-            "in_progress" { "🔄" }
-            default { "⏳" }
+        $phaseStatus = $state.phases.$phase.status
+        $marker = switch ($phaseStatus) {
+            "completed" { "[x]" }
+            "in_progress" { "[~]" }
+            default { "[ ]" }
         }
-        Write-Host "  $emoji $phase : $status"
+        Write-Host "  $marker $phase : $phaseStatus"
     }
 
     Write-Host ""
@@ -148,7 +160,7 @@ function Show-Status {
 
     if ($state.blockers.Count -gt 0) {
         Write-Host ""
-        Write-Host "⚠️ Blockers:" -ForegroundColor Red
+        Write-Host "Blockers:" -ForegroundColor Red
         foreach ($blocker in $state.blockers) {
             Write-Host "  - $blocker"
         }
@@ -164,11 +176,10 @@ function Advance-Phase {
     $currentPhase = $state.current_phase
 
     Write-Host ""
-    Write-Host "➡️ Advancing Workflow" -ForegroundColor Cyan
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host "Advancing Workflow" -ForegroundColor Cyan
+    Write-Host "------------------" -ForegroundColor Cyan
     Write-Host ""
 
-    # Mark current phase as completed
     $now = (Get-Date).ToUniversalTime().ToString("o")
     Update-WorkflowState @{
         phases = @{
@@ -184,28 +195,27 @@ function Advance-Phase {
         current_phase = $NextPhase
     }
 
-    Write-Host "✅ $currentPhase phase completed at $now" -ForegroundColor Green
-    Write-Host "🔄 $NextPhase phase now in progress" -ForegroundColor Yellow
+    Write-Host "[OK] $currentPhase phase completed at $now" -ForegroundColor Green
+    Write-Host "[RUNNING] $NextPhase phase now in progress" -ForegroundColor Yellow
     Write-Host ""
 
-    # Show next steps based on phase
     switch ($NextPhase) {
         "pm" {
-            Write-Host "📋 PM Agent Instructions:" -ForegroundColor Cyan
+            Write-Host "PM Agent Instructions:" -ForegroundColor Cyan
             Write-Host "  1. Copy .github/instructions/pm.instructions.md"
             Write-Host "  2. Paste into Copilot Chat"
             Write-Host "  3. Provide analysis files from $currentPhase phase"
             Write-Host "  4. Create GitHub Issues from user stories"
         }
         "development" {
-            Write-Host "💻 Development Agent Instructions:" -ForegroundColor Cyan
+            Write-Host "Development Agent Instructions:" -ForegroundColor Cyan
             Write-Host "  1. Copy .github/instructions/development.instructions.md"
             Write-Host "  2. Paste into Copilot Chat"
             Write-Host "  3. Provide GitHub issue list"
-            Write-Host "  4. Implement issues with tests (70%+ coverage)"
+            Write-Host "  4. Implement issues with tests (70% plus coverage)"
         }
         "review" {
-            Write-Host "✅ Review Agent Instructions:" -ForegroundColor Cyan
+            Write-Host "Review Agent Instructions:" -ForegroundColor Cyan
             Write-Host "  1. Copy .github/instructions/review.instructions.md"
             Write-Host "  2. Paste into Copilot Chat"
             Write-Host "  3. Provide Pull Request links"
@@ -216,14 +226,41 @@ function Advance-Phase {
     Write-Host ""
 }
 
+function Advance-WorkflowWithConfirmation {
+    $state = Get-WorkflowState
+    $currentPhase = $state.current_phase
+    $nextPhase = Get-NextPhase -CurrentPhase $currentPhase
+
+    if ($nextPhase -eq "done") {
+        Write-Host "" 
+        Write-Host "[OK] Workflow completed. No further phases to advance." -ForegroundColor Green
+        Write-Host ""
+        return
+    }
+
+    Write-Host ""
+    Write-Host "Phase gate" -ForegroundColor Cyan
+    Write-Host "Current phase: $currentPhase"
+    Write-Host "Next phase: $nextPhase"
+
+    $confirmation = Read-Host "Proceed to next phase? (y/n)"
+    if ($confirmation -ne "y" -and $confirmation -ne "Y") {
+        Write-Host "[PAUSED] Workflow not advanced." -ForegroundColor Yellow
+        Write-Host ""
+        return
+    }
+
+    Advance-Phase -NextPhase $nextPhase
+}
+
 function Escalate-Blocker {
     param([string]$Message)
 
     $state = Get-WorkflowState
 
     Write-Host ""
-    Write-Host "⚠️ Escalation Alert" -ForegroundColor Red
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Red
+    Write-Host "Escalation Alert" -ForegroundColor Red
+    Write-Host "----------------" -ForegroundColor Red
     Write-Host ""
 
     Write-Host "Phase: $($state.current_phase)"
@@ -238,84 +275,86 @@ function Escalate-Blocker {
     Write-Host "  4. Resume workflow when ready"
     Write-Host ""
 
-    # Add to blockers
     $state.blockers += @{
         timestamp = (Get-Date).ToUniversalTime().ToString("o")
         phase = $state.current_phase
         message = $Message
     }
 
-    $state | ConvertTo-Json -Depth 10 | Set-Content $StateFile
+    $state | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $StateFile
 }
 
 function Show-Dashboard {
     $state = Get-WorkflowState
 
-    # Calculate progress percentage
     $completed = @($state.phases.PSObject.Properties | Where-Object { $_.Value.status -eq "completed" }).Count
     $total = $state.phases.PSObject.Properties.Count
     $progress = [math]::Round(($completed / $total) * 100)
 
-    $dashboardContent = @"
-# $($state.sprint) Workflow Dashboard
-
-**Status:** Analysis → PM → Development → Review → Done
-
-## Current Phase
-- **In Progress:** $($state.current_phase)
-- **Issues in Progress:** $($state.issues.in_progress)
-- **PRs awaiting Review:** $($state.pull_requests.created - $state.pull_requests.approved)
-
-## Progress Summary
-"@
+    $lines = New-Object System.Collections.Generic.List[string]
+    $lines.Add("# $($state.sprint) Workflow Dashboard")
+    $lines.Add("")
+    $lines.Add("**Status:** Analysis -> PM -> Development -> Review -> Done")
+    $lines.Add("")
+    $lines.Add("## Current Phase")
+    $lines.Add("- **In Progress:** $($state.current_phase)")
+    $lines.Add("- **Issues in Progress:** $($state.issues.in_progress)")
+    $lines.Add("- **PRs awaiting Review:** $($state.pull_requests.created - $state.pull_requests.approved)")
+    $lines.Add("")
+    $lines.Add("## Progress Summary")
 
     foreach ($phase in $state.phases.PSObject.Properties.Name) {
-        $status = $state.phases.$phase.status
-        if ($status -eq "completed") { $icon = "✅" }
-        elseif ($status -eq "in_progress") { $icon = "🔄" }
-        else { $icon = "⏳" }
+        $phaseStatus = $state.phases.$phase.status
+        $icon = if ($phaseStatus -eq "completed") {
+            "[x]"
+        }
+        elseif ($phaseStatus -eq "in_progress") {
+            "[~]"
+        }
+        else {
+            "[ ]"
+        }
 
-        $dashboardContent += "`n- $icon $phase : $status"
+        $lines.Add("- $icon $phase : $phaseStatus")
     }
 
-    $dashboardContent += @"
-
-
-**Overall Progress:** $progress% complete ($completed/$total phases done)
-
-## Metrics
-- Issues Created: $($state.issues.created)
-- Issues In Progress: $($state.issues.in_progress)
-- Issues Completed: $($state.issues.completed)
-- PRs Created: $($state.pull_requests.created)
-- PRs Approved: $($state.pull_requests.approved)
-- PRs Merged: $($state.pull_requests.merged)
-
-## Timeline
-- Started: $($state.started_at)
-
-## Next Steps
-1. Continue with $($state.current_phase) phase
-2. When complete, run: orchestrator.ps1 -Command advance -Phase <next_phase>
-3. Check dashboard: orchestrator.ps1 -Command dashboard
-"@
+    $lines.Add("")
+    $lines.Add("**Overall Progress:** $progress% complete ($completed/$total phases done)")
+    $lines.Add("")
+    $lines.Add("## Metrics")
+    $lines.Add("- Issues Created: $($state.issues.created)")
+    $lines.Add("- Issues In Progress: $($state.issues.in_progress)")
+    $lines.Add("- Issues Completed: $($state.issues.completed)")
+    $lines.Add("- PRs Created: $($state.pull_requests.created)")
+    $lines.Add("- PRs Approved: $($state.pull_requests.approved)")
+    $lines.Add("- PRs Merged: $($state.pull_requests.merged)")
+    $lines.Add("")
+    $lines.Add("## Timeline")
+    $lines.Add("- Started: $($state.started_at)")
+    $lines.Add("")
+    $lines.Add("## Next Steps")
+    $lines.Add("1. Continue with $($state.current_phase) phase")
+    $lines.Add("2. Use chat-first orchestration with Orchestrator Agent")
+    $lines.Add("3. Optional shortcut: orchestrator.ps1 -Command next")
+    $lines.Add("4. Check dashboard: orchestrator.ps1 -Command dashboard")
 
     if ($state.blockers.Count -gt 0) {
-        $dashboardContent += "`n`n## ⚠️ Blockers`n"
+        $lines.Add("")
+        $lines.Add("## Blockers")
         foreach ($blocker in $state.blockers) {
-            $dashboardContent += "`n- **$($blocker.phase)**: $($blocker.message) (at $($blocker.timestamp))`n"
+            $lines.Add("- **$($blocker.phase)**: $($blocker.message) (at $($blocker.timestamp))")
         }
     }
 
+    $dashboardContent = $lines -join [Environment]::NewLine
+
     Write-Host $dashboardContent
 
-    # Save dashboard
-    $dashboardContent | Set-Content ".github/workflows/PROGRESS_DASHBOARD.md"
+    $dashboardContent | Set-Content -Encoding UTF8 ".github/workflows/PROGRESS_DASHBOARD.md"
     Write-Host ""
-    Write-Host "📊 Dashboard saved to .github/workflows/PROGRESS_DASHBOARD.md" -ForegroundColor Green
+    Write-Host "[OK] Dashboard saved to .github/workflows/PROGRESS_DASHBOARD.md" -ForegroundColor Green
 }
 
-# Execute command
 switch ($Command) {
     "start" {
         Start-Workflow -Sprint $SprintName
@@ -325,6 +364,9 @@ switch ($Command) {
     }
     "advance" {
         Advance-Phase -NextPhase $Phase
+    }
+    "next" {
+        Advance-WorkflowWithConfirmation
     }
     "escalate" {
         Escalate-Blocker -Message $Issue

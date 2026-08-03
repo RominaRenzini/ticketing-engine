@@ -66,8 +66,8 @@ jobs:
         if: github.event.inputs.phase == 'all' || github.event.inputs.phase == 'analysis'
         run: |
           echo "⏳ Waiting for Analysis Agent to complete..."
-          echo "Manual step: Copy .github/instructions/analysis.instructions.md to Copilot Chat"
-          echo "Check: Has wiki/sprint-X/functional-analysis-sprint-X.md been created? (Y/N)"
+          echo "Chat-first mode: continue orchestration in VS Code with Orchestrator Agent"
+          echo "Gate check: confirm analysis outputs, then proceed automatically to PM phase"
 
       - name: Trigger PM Phase
         if: github.event.inputs.phase == 'all' || github.event.inputs.phase == 'pm'
@@ -143,17 +143,14 @@ jobs:
           **Sprint:** ${{ github.event.inputs.sprint_name }}
           **Status:** Analysis Phase Initiated
 
-          ## What to do next:
+           ## What to do next:
 
-          1. **Open Copilot Chat** (VS Code or Visual Studio)
-          2. **Copy instructions** from `.github/instructions/analysis.instructions.md`
-          3. **Paste into chat** and add your project brief
-          4. **Wait for completion** - Analysis Agent will create:
-             - `wiki/sprint-X/functional-analysis-sprint-X.md`
-             - `wiki/sprint-X/technical-analysis-sprint-X.md`
-          5. **Come back here** when analysis is complete
+           1. Open Copilot Chat in VS Code
+           2. Ask Orchestrator Agent to start the sprint with your brief
+           3. Review each phase output at gate checkpoints
+           4. Confirm to continue to the next phase
 
-          The Orchestrator will automatically trigger the PM Agent next.
+           No manual downstream agent triggering should be required.
           EOF
           cat /tmp/workflow-summary.md
 
@@ -173,14 +170,14 @@ jobs:
 
           ## Current State
           - Phase: Analysis Initiated
-          - Status: Waiting for manual agent invocation
+          - Status: Chat-first orchestration running with phase gates
           - Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           ## What's Expected Next
-          1. User runs Analysis Agent via Copilot Chat
+          1. Orchestrator triggers Analysis Agent in chat
           2. Analysis creates functional-analysis.md and technical-analysis.md
-          3. Analysis Agent completes and signals done
-          4. Orchestrator receives handoff and triggers PM Agent
+          3. User confirms at phase gate
+          4. Orchestrator triggers PM Agent automatically
 
           ## Progress Files
           - State: `.github/workflows/state/orchestrator-state.json`

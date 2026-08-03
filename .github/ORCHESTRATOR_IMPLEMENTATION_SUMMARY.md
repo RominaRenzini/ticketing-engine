@@ -208,6 +208,7 @@ Integration with GitHub Issues:
 - [ ] Slack integration for status updates
 
 ### Phase 3: Advanced Tracking
+- [ ] Introduce a simple DevEx interface (chat/panel driven) to replace most console script usage for orchestration actions
 - [ ] Web dashboard for progress visualization
 - [ ] Real-time metrics collection
 - [ ] Performance analytics per agent
